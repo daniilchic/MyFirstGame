@@ -14,3 +14,6 @@ add_subdirectory(external/glfw)
 target_include_directories(${PROJECT_NAME} PRIVATE external/glfw/include)
 target_link_libraries(${PROJECT_NAME} glfw)
 
+add_subdirectory(external/glad)
+target_link_libraries(${PROJECT_NAME} glad)
+
