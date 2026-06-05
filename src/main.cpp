@@ -1,6 +1,30 @@
 #include <iostream>
+#include <GLFW/glfw3.h>
 
 int main(){
-    std::cout << "Hello World" << std::endl;
+
+    if(!glfwInit()){
+        return -1;
+    }
+    
+    GLFWwindow* window = glfwCreateWindow(640, 480, "Game", NULL, NULL);
+    
+    if(!window){
+        glfwTerminate();
+	return -1;
+    }
+
+    glfwMakeContextCurrent(window);
+
+    while(!glfwWindowShouldClose(window)){
+
+	glfwSwapBuffers(window);
+
+	glfwPollEvents();
+    }
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
+
     return 0;
 }

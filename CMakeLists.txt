@@ -1,5 +1,16 @@
 cmake_minimum_required(VERSION 4.3.3 FATAL_ERROR)
 
-project(MyFirstGame)
+set(PROJECT_NAME MyFirstGame)
+project(${PROJECT_NAME})
 
-add_executable(Game src/main.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp)
+
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+
+add_subdirectory(external/glfw)
+target_include_directories(${PROJECT_NAME} PRIVATE external/glfw/include)
+target_link_libraries(${PROJECT_NAME} glfw)
+
