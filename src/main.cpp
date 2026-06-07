@@ -69,7 +69,7 @@ int main(){
 
     std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
     std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
-    glClearColor(0, 1, 0, 1);
+    glClearColor(0, 0, 0, 1);
 
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vertex_shader, nullptr);
