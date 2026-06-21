@@ -29,6 +29,8 @@ target_link_libraries(${PROJECT_NAME} glfw)
 add_subdirectory(external/glad)
 target_link_libraries(${PROJECT_NAME} glad)
 
+target_include_directories(${PROJECT_NAME} PRIVATE external/glm)
+
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
 
 add_custom_target(CopyRes ALL
