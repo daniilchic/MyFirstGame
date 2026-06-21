@@ -2,7 +2,7 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
+#include <glm/vec2.hpp>
 #include "Renderer/ShaderProgram.h"
 #include "Resources/ResourceManager.h"
 #include "Renderer/Texture2D.h"
@@ -28,9 +28,7 @@ GLfloat textureCoordinats[] = {
 
 void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height);
 void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mode);
-
-int g_windowSizeX = 640;
-int g_windowSizeY = 480;
+glm::ivec2 g_windowSize(640, 480);
 
 int main(int argc, char** argv){
 
@@ -44,7 +42,7 @@ int main(int argc, char** argv){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
-    GLFWwindow* pWindow = glfwCreateWindow(g_windowSizeX, g_windowSizeY, "Game", nullptr, nullptr);
+    GLFWwindow* pWindow = glfwCreateWindow(g_windowSize.x, g_windowSize.y, "Game", nullptr, nullptr);
     
     if(!pWindow){
     	std::cout << "glfwCreateWindow failed" << std::endl;
@@ -130,9 +128,9 @@ int main(int argc, char** argv){
 }
 
 void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height){
-   	g_windowSizeX = width;
-   	g_windowSizeY = height;
-   	glViewport(0, 0, g_windowSizeX, g_windowSizeY);
+   	g_windowSize.x = width;
+   	g_windowSize.y = height;
+   	glViewport(0, 0, g_windowSize.x, g_windowSize.y);
 }
 void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mode){
    	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
