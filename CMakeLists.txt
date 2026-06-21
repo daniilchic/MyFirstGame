@@ -5,9 +5,9 @@ project(${PROJECT_NAME})
 
 
 add_executable(${PROJECT_NAME} 
-	src/main.cpp
+    src/main.cpp
     src/Renderer/ShaderProgram.cpp
-	src/Renderer/ShaderProgram.h
+    src/Renderer/ShaderProgram.h
     src/Resources/ResourceManager.cpp
     src/Resources/ResourceManager.h
     src/Resources/stb_image.h
@@ -31,6 +31,8 @@ target_link_libraries(${PROJECT_NAME} glad)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)
+add_custom_target(CopyRes ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res
+)
+add_dependencies(${PROJECT_NAME} CopyRes)
