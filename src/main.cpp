@@ -7,22 +7,42 @@
 #include "Resources/ResourceManager.h"
 #include "Renderer/Texture2D.h"
 
+const float TILE_SIZE      = 16.0f;
+const float TEXTURE_SIZE   = 128.0f;
+const float TILE_UV        = TILE_SIZE / TEXTURE_SIZE;
+const int   TILES_PER_ROW  = static_cast<int>(TEXTURE_SIZE  / TILE_SIZE);
+const int   TOTAL_TILES    = TILES_PER_ROW * TILES_PER_ROW;
+
+int g_currentTile = 0;
+glm::vec2 texOffset(0.0f, 0.0f);
+
 GLfloat point[] = {
-     0.0f,  0.5f, 0.0f,
+    -0.5f,  0.5f, 0.0f,
      0.5f, -0.5f, 0.0f,
-    -0.5f, -0.5f, 0.0f
+    -0.5f, -0.5f, 0.0f,
+
+    -0.5f,   0.5f, 0.0f,
+     0.5f,   0.5f, 0.0f,
+     0.5f,  -0.5f, 0.0f
 }; 
 
 GLfloat colors[] = {
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 1.0f,
+
     1.0f, 0.0f, 0.0f,
     0.0f, 1.0f, 0.0f,
     0.0f, 0.0f, 1.0f
 };
 
 GLfloat textureCoordinats[] = {
-    0.5f, 1.0f,
-    1.0f, 0.0f,
-    0.0f, 0.0f
+    0.0f,       TILE_UV,   // левый верх
+    TILE_UV,    0.0f,      // правый низ
+    0.0f,       0.0f,      // левый низ
+    0.0f,       TILE_UV,   // левый верх
+    TILE_UV,    TILE_UV,   // правый верх
+    TILE_UV,    0.0f       // правый низ
 };
 
 
@@ -108,11 +128,14 @@ int main(int argc, char** argv){
             
         while(!glfwWindowShouldClose(pWindow)){
 		    glClear(GL_COLOR_BUFFER_BIT);
-	
+
+            
             pDefaultShaderProgram->use();
+            pDefaultShaderProgram->setVec2("u_texOffset", texOffset);
+	
 	    	glBindVertexArray(vao);
             tex->bind();
-	    	glDrawArrays(GL_TRIANGLES, 0, 3);
+	    	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		    glfwSwapBuffers(pWindow);
 
@@ -136,4 +159,11 @@ void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int
    	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
        	glfwSetWindowShouldClose(pWindow, GL_TRUE);
    	}
+    if(key == GLFW_KEY_SPACE && action == GLFW_PRESS){
+        g_currentTile = (g_currentTile + 1) % TOTAL_TILES;
+        int col = g_currentTile % TILES_PER_ROW;
+        int row = g_currentTile / TILES_PER_ROW;
+        texOffset = glm::vec2(col * TILE_UV, row * TILE_UV);
+    }
 }
+

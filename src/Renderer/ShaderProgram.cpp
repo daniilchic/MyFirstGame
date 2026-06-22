@@ -79,4 +79,11 @@ namespace Renderer{
     void ShaderProgram::setInt(const std::string& name, const GLint value){
         glUniform1i(glGetUniformLocation(m_ID, name.c_str()), value);
     }
+
+    void ShaderProgram::setVec2(const std::string& name, const glm::vec2& value) const{
+        GLint location = glGetUniformLocation(m_ID, name.c_str());
+        if(location != -1){
+            glUniform2f(location, value.x, value.y);
+        }
+    }
 }

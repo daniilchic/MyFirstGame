@@ -1,6 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 #include <string>
+#include <glm/vec2.hpp>
 namespace Renderer{
     	class ShaderProgram{
 		public:
@@ -10,15 +11,17 @@ namespace Renderer{
 	 		void use() const;
             void setInt(const std::string& name, const GLint value);
 
+            void setVec2(const std::string& name, const glm::vec2& value) const;
+
             ShaderProgram() = delete;
             ShaderProgram(ShaderProgram&) = delete;
             ShaderProgram& operator=(const ShaderProgram&) = delete;
             ShaderProgram& operator=(ShaderProgram&&) noexcept;
             ShaderProgram(ShaderProgram&& shaderProgram) noexcept;
 		private:
-	    		bool createShader(const std::string& source, const GLenum shaderType, GLuint& shaderID);
-	    		bool m_isCompiled = false;
-	    		GLuint m_ID = 0;
+	    	bool createShader(const std::string& source, const GLenum shaderType, GLuint& shaderID);
+	   		bool m_isCompiled = false;
+	   		GLuint m_ID = 0;
 
     };
 }
