@@ -17,7 +17,7 @@ namespace Renderer{
             Texture2D& operator=(Texture2D&& texture2d) noexcept;
             Texture2D(Texture2D&& texture2d) noexcept;
 
-            void bind() const;
+            void bind(unsigned int unit = 0) const;
             ~Texture2D();
         private:
             GLuint m_ID;

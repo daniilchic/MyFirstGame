@@ -52,7 +52,8 @@ namespace Renderer {
     Texture2D::~Texture2D(){
         glDeleteTextures(1, &m_ID);
     }
-    void Texture2D::bind() const{
+    void Texture2D::bind(unsigned int unit) const{
+        glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(GL_TEXTURE_2D, m_ID);
     }
 }
