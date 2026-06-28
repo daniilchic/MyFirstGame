@@ -5,11 +5,13 @@ layout(location = 2) in vec2 texture_coords;
 out vec3 color;
 out vec2 textureCoord;
 
+uniform vec2 u_uvOffset;
+uniform vec2 u_uvScale;
 uniform mat4 modelMat;
 uniform mat4 projectionMat;
 
 void main(){
     color = vertex_color;
-    textureCoord = texture_coords;
+    textureCoord = u_uvOffset + u_uvScale * texture_coords;
     gl_Position = projectionMat * modelMat * vec4(vertex_position, 1.0);
 }

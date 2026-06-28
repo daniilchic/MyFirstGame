@@ -30,11 +30,15 @@ namespace Renderer{
 
             void draw(const glm::mat4& projectionMatrix);
             static void initRenderData();
+
+            void setUVRegion(const glm::vec2& offset, const glm::vec2& scale);
         private:
             static GLuint s_vao;
             static GLuint s_vbo_positions;
             static GLuint s_vbo_colors;
             static GLuint s_vbo_texCoords;
+            glm::vec2 m_uvOffset;
+            glm::vec2 m_uvScale;
             std::shared_ptr<Texture2D> m_pTexture;
             std::shared_ptr<ShaderProgram> m_pShaderProgram;
             glm::vec2 m_position;

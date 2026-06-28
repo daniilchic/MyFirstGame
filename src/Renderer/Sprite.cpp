@@ -20,6 +20,8 @@ namespace Renderer{
                    , m_position(position)
                    , m_size(size)
                    , m_rotation(rotation) 
+                   , m_uvOffset(0.0f, 0.0f)
+                   , m_uvScale(1.0f, 1.0f)
     {
         
     }
@@ -112,7 +114,14 @@ namespace Renderer{
         
         m_pTexture->bind(0);
         glBindVertexArray(s_vao);
+        m_pShaderProgram->setVec2("u_uvOffset", m_uvOffset);
+        m_pShaderProgram->setVec2("u_uvScale", m_uvScale);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
+    }
+
+    void Sprite::setUVRegion(const glm::vec2& offset, const glm::vec2& scale){
+        m_uvOffset = offset;
+        m_uvScale = scale;
     }
 }

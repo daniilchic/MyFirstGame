@@ -11,6 +11,7 @@ namespace Renderer{
 	 		void use() const;
             void setInt(const std::string& name, const GLint value);
             void setMatrix4(const std::string& name, const glm::mat4& matrix);
+            void setVec2(const std::string& name, const glm::vec2& value) const;
             ShaderProgram() = delete;
             ShaderProgram(ShaderProgram&) = delete;
             ShaderProgram& operator=(const ShaderProgram&) = delete;

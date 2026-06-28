@@ -83,4 +83,10 @@ namespace Renderer{
     void ShaderProgram::setMatrix4(const std::string& name, const glm::mat4& matrix){
         glUniformMatrix4fv(glGetUniformLocation(m_ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(matrix));
     }
+    void ShaderProgram::setVec2(const std::string& name, const glm::vec2& value) const{
+        GLint location = glGetUniformLocation(m_ID, name.c_str());
+        if (location != -1){
+            glUniform2f(location, value.x, value.y);
+        }
+    }
 }
