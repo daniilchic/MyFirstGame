@@ -32,6 +32,12 @@ namespace Renderer{
             static void initRenderData();
 
             void setUVRegion(const glm::vec2& offset, const glm::vec2& scale);
+
+            struct Rect {
+                float x, y, width, height;
+            };
+            Rect getRect() const;
+
         private:
             static GLuint s_vao;
             static GLuint s_vbo_positions;

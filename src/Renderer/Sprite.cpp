@@ -124,4 +124,11 @@ namespace Renderer{
         m_uvOffset = offset;
         m_uvScale = scale;
     }
+
+    Sprite::Rect Sprite::getRect() const{
+        float margin = 2.0f;
+        float halfW = m_size.x * 0.5f;
+        float halfH = m_size.y * 0.5f;
+        return { m_position.x - halfW + margin, m_position.y - halfH + margin, (halfW-margin)*2, (halfH-margin)*2 };
+    }
 }

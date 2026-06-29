@@ -1,4 +1,4 @@
-
+#include <vector>
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -13,11 +13,28 @@
 void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height);
 void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mode);
 void getTileUV(unsigned int tileID, glm::vec2& outOffset, glm::vec2& outScale);
-glm::ivec2 g_windowSize(640, 480);
+bool checkCollision(const Renderer::Sprite::Rect& a, const Renderer::Sprite::Rect& b);
+bool checkAllCollisions(const Renderer::Sprite& a, const std::vector<std::shared_ptr<Renderer::Sprite>>& walls);
+glm::vec2 worldPosition(int x, int y);
+glm::ivec2 g_windowSize(640, 640);
 
 int main(int argc, char** argv){
+    const int mapCols = 10;
+    const int mapRows = 10;
 
-
+    int gameMap[mapRows][mapCols] = 
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 0, 1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 1, 0, 0, 0, 0, 1},
+        {1, 0, 1, 0, 1, 0, 1, 1, 1, 1},
+        {1, 0, 1, 0, 1, 0, 1, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 1, 1, 1, 0, 0, 1},
+        {1, 0, 1, 0, 0, 0, 1, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 1, 0, 0, 1}, // в 5 стобце - игрок
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+    };
     if(!glfwInit()){
 	std::cout << "glfwInir failed" << std::endl;
         return -1;
@@ -62,58 +79,74 @@ int main(int argc, char** argv){
         auto tex = resourceManager.loadTexture("DefaultTexture", "res/textures/map_16x16.png");
         auto pShader = resourceManager.getShaderProgram("DefaultShader");
         
-        auto sprite1 = std::make_shared<Renderer::Sprite>(tex, pShader, glm::vec2(100.0f, 320.0f), glm::vec2(64.0f, 64.0f), 0.f);
-        auto sprite2 = std::make_shared<Renderer::Sprite>(tex, pShader, glm::vec2(540.0f, 320.0f), glm::vec2(64.0f, 64.0f), 0.f);
+        auto tank = std::make_shared<Renderer::Sprite>(tex, pShader, worldPosition(5, 2), glm::vec2(64.0f, 64.0f), 0.f);
+        std::vector<std::shared_ptr<Renderer::Sprite>> walls;
+
         glm::vec2 offset, scale;
-        getTileUV(3, offset, scale);
-        sprite1->setUVRegion(offset, scale);
-        sprite2->setUVRegion(offset, scale);
+        getTileUV(0, offset, scale);
+        tank->setUVRegion(offset, scale);
+        for(int row = 0; row < mapRows; row++){
+            for(int col = 0; col < mapCols; col++){
+                int tileType = gameMap[row][col];
+                if (tileType == 0) continue;
+                auto sprite = std::make_shared<Renderer::Sprite>(tex, pShader, worldPosition(col+1, 10-row), glm::vec2(64.0f, 64.0f), 0.f);
+                glm::vec2 offset, scale;
+                if (tileType == 1){
+                    getTileUV(16, offset, scale);
+                    walls.push_back(sprite);
+                }
+                sprite->setUVRegion(offset, scale);
+            }
+        }
         glm::mat4 projectionMatrix = glm::ortho(0.f, static_cast<float>(g_windowSize.x), 0.f, static_cast<float>(g_windowSize.y), -100.f, 100.f);
 
         float speed = 100.0f; 
         float rotation1 = 0.0f;
-        float rotation2 = 180.0f;
         float lastFrameTime = (float)glfwGetTime();
         while(!glfwWindowShouldClose(pWindow)){
             float currentFrameTime = (float)glfwGetTime();
             float deltaTime = currentFrameTime - lastFrameTime;
+            float moveSpeed = deltaTime * speed;
+            char move_x = 0;
+            char move_y = 0;
             lastFrameTime = currentFrameTime;
-            glm::vec2 pos1 = sprite1->getPosition();
-            glm::vec2 pos2 = sprite2->getPosition();
+            glm::vec2 oldPos1 = tank->getPosition();
+            glm::vec2 pos1 = oldPos1;
 		    glClear(GL_COLOR_BUFFER_BIT);
 	        
-            if(glfwGetKey(pWindow, GLFW_KEY_W) == GLFW_PRESS){
-                pos1.y += speed * deltaTime;
-                pos2.y -= speed * deltaTime;
+            if(glfwGetKey(pWindow, GLFW_KEY_D) == GLFW_PRESS){
+                move_x++; 
                 rotation1 = 270.0f;
-                rotation2 = 90.0f;
             }
             if(glfwGetKey(pWindow, GLFW_KEY_A) == GLFW_PRESS){
-                pos1.x -= speed * deltaTime;
-                pos2.x += speed * deltaTime;
-                rotation1 = 0.0f;
-                rotation2 = 180.0f;
-            }
-            if(glfwGetKey(pWindow, GLFW_KEY_S) == GLFW_PRESS){
-                pos1.y -= speed * deltaTime;
-                pos2.y += speed * deltaTime;
+                move_x--;
                 rotation1 = 90.0f;
-                rotation2 = 270.0f;
             }
-            if(glfwGetKey(pWindow, GLFW_KEY_D) == GLFW_PRESS){
-                pos1.x += speed * deltaTime;
-                pos2.x -= speed * deltaTime;
+
+            if(glfwGetKey(pWindow, GLFW_KEY_S) == GLFW_PRESS){
+                move_y--;
                 rotation1 = 180.0f;
-                rotation2 = 0.0f;
+            }
+            if(glfwGetKey(pWindow, GLFW_KEY_W) == GLFW_PRESS){
+                move_y++;
+                rotation1 = 0.0f;
             }
 
-            sprite1->setRotation(rotation1);
-            sprite1->setPosition(pos1);
-            sprite1->draw(projectionMatrix);
-            sprite2->setRotation(rotation2);
-            sprite2->setPosition(pos2);
-            sprite2->draw(projectionMatrix);
-
+            if(move_x != 0 && move_y != 0){
+                move_x = 0;
+            }
+            pos1.x += move_x * moveSpeed;
+            pos1.y += move_y * moveSpeed;
+            tank->setPosition(pos1);
+            if(checkAllCollisions(*tank, walls)){
+                pos1 = oldPos1;
+            }
+            tank->setRotation(rotation1);
+            tank->setPosition(pos1);
+            tank->draw(projectionMatrix);
+            for(auto& wall : walls){
+                wall->draw(projectionMatrix);
+            }
 		    glfwSwapBuffers(pWindow);
 
 		    glfwPollEvents();
@@ -152,4 +185,23 @@ void getTileUV(unsigned int tileID, glm::vec2& outOffset, glm::vec2& outScale) {
  
     outOffset.x = (col * TILE_SIZE) / TEX_W;
     outOffset.y = 1.0f - ((row + 1) * TILE_SIZE) / TEX_H;
+}
+bool checkAllCollisions(const Renderer::Sprite& a, const std::vector<std::shared_ptr<Renderer::Sprite>>& walls){
+    for(auto& wall : walls) {
+        if(checkCollision(a.getRect(), wall->getRect())){
+            return true;
+        }
+    }
+    return false;
+}
+bool checkCollision(const Renderer::Sprite::Rect& a, const Renderer::Sprite::Rect& b){
+    bool overlapX = (a.x < b.x + b.width) && (a.x + a.width > b.x);
+    bool overlapY = (a.y < b.y + b.height) && (a.y + a.height > b.y);
+    return overlapX && overlapY;
+}
+glm::vec2 worldPosition(int x, int y){
+    glm::vec2 ans;
+    ans.x = (x - 1) * 64.0f + 32.0f;
+    ans.y = (y - 1) * 64.0f + 32.0f;
+    return ans;
 }
