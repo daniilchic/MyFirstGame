@@ -15,6 +15,10 @@ add_executable(${PROJECT_NAME}
     src/Renderer/Texture2D.cpp
     src/Renderer/Sprite.h
     src/Renderer/Sprite.cpp
+    src/GamePlay/Tank.h
+    src/GamePlay/Tank.cpp
+    src/GamePlay/Wall.h
+    src/GamePlay/Wall.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)

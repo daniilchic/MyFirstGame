@@ -9,10 +9,12 @@
 #include "Renderer/ShaderProgram.h"
 #include "Resources/ResourceManager.h"
 #include "Renderer/Texture2D.h"
+#include "Renderer/getTileUV.h"
+#include "GamePlay/Tank.h"
+#include "GamePlay/Wall.h"
 
 void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height);
 void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mode);
-void getTileUV(unsigned int tileID, glm::vec2& outOffset, glm::vec2& outScale);
 bool checkCollision(const Renderer::Sprite::Rect& a, const Renderer::Sprite::Rect& b);
 bool checkAllCollisions(const Renderer::Sprite& a, const std::vector<std::shared_ptr<Renderer::Sprite>>& walls);
 glm::vec2 worldPosition(int x, int y);
@@ -22,7 +24,7 @@ int main(int argc, char** argv){
     const int mapCols = 10;
     const int mapRows = 10;
 
-    int gameMap[mapRows][mapCols] = 
+    int gameMap[mapRows][mapCols] = //Game map, 0 - empty, 1 - wall, 2 - grass, 3 - metal, 4 - water 
     {
         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
         {1, 0, 1, 0, 0, 0, 0, 0, 0, 1},
@@ -32,11 +34,11 @@ int main(int argc, char** argv){
         {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
         {1, 0, 0, 0, 1, 1, 1, 0, 0, 1},
         {1, 0, 1, 0, 0, 0, 1, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 1, 0, 0, 1}, // в 5 стобце - игрок
+        {1, 0, 0, 0, 0, 0, 1, 0, 0, 1}, // player is on 5 col
         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
     };
     if(!glfwInit()){
-	std::cout << "glfwInir failed" << std::endl;
+	std::cout << "glfwInit failed" << std::endl;
         return -1;
     }
 
@@ -44,9 +46,9 @@ int main(int argc, char** argv){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
-    GLFWwindow* pWindow = glfwCreateWindow(g_windowSize.x, g_windowSize.y, "Game", nullptr, nullptr);
+    GLFWwindow* pWindow = glfwCreateWindow(g_windowSize.x, g_windowSize.y, "Game", nullptr, nullptr); 
     
-    if(!pWindow){
+    if(!pWindow){ 
     	std::cout << "glfwCreateWindow failed" << std::endl;
         glfwTerminate();
     	return -1;
@@ -61,14 +63,14 @@ int main(int argc, char** argv){
     	return -1;
     }
     
-    Renderer::Sprite::initRenderData();
+    Renderer::Sprite::initRenderData(); // initialization of Sprites Size, color, texture
 
     std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
     std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
     glClearColor(0, 0, 0, 1);
     {
         ResourceManager resourceManager(argv[0]);
-        auto pDefaultShaderProgram = resourceManager.loadShaders("DefaultShader", "res/shaders/vertex_shader.txt", "res/shaders/fragment_shader.txt"); 
+        auto pDefaultShaderProgram = resourceManager.loadShaders("DefaultShader", "res/shaders/vertex_shader.txt", "res/shaders/fragment_shader.txt"); //shaders
         if(!pDefaultShaderProgram){
             std::cerr << "Can't create shader program: " << "DefaultShader" << std::endl;
             return -1;
@@ -79,31 +81,28 @@ int main(int argc, char** argv){
         auto tex = resourceManager.loadTexture("DefaultTexture", "res/textures/map_16x16.png");
         auto pShader = resourceManager.getShaderProgram("DefaultShader");
         
-        auto tank = std::make_shared<Renderer::Sprite>(tex, pShader, worldPosition(5, 2), glm::vec2(64.0f, 64.0f), 0.f);
+        auto tank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 2)); //player tank
         std::vector<std::shared_ptr<Renderer::Sprite>> walls;
 
         glm::vec2 offset, scale;
         getTileUV(0, offset, scale);
         tank->setUVRegion(offset, scale);
-        for(int row = 0; row < mapRows; row++){
+        for(int row = 0; row < mapRows; row++){ //run game map and push sprites to vector
             for(int col = 0; col < mapCols; col++){
                 int tileType = gameMap[row][col];
-                if (tileType == 0) continue;
-                auto sprite = std::make_shared<Renderer::Sprite>(tex, pShader, worldPosition(col+1, 10-row), glm::vec2(64.0f, 64.0f), 0.f);
-                glm::vec2 offset, scale;
-                if (tileType == 1){
-                    getTileUV(16, offset, scale);
-                    walls.push_back(sprite);
+                if (tileType == 0) continue; //empty
+                if (tileType == 1){ //wall
+                    auto wall = std::make_shared<Wall>(tex, pShader, worldPosition(col+1, 10-row));
+                    walls.push_back(wall);
                 }
-                sprite->setUVRegion(offset, scale);
             }
         }
-        glm::mat4 projectionMatrix = glm::ortho(0.f, static_cast<float>(g_windowSize.x), 0.f, static_cast<float>(g_windowSize.y), -100.f, 100.f);
+        glm::mat4 projectionMatrix = glm::ortho(0.f, static_cast<float>(g_windowSize.x), 0.f, static_cast<float>(g_windowSize.y), -100.f, 100.f); //initialization projection matrix
 
         float speed = 100.0f; 
         float rotation1 = 0.0f;
         float lastFrameTime = (float)glfwGetTime();
-        while(!glfwWindowShouldClose(pWindow)){
+        while(!glfwWindowShouldClose(pWindow)){ //game loop
             float currentFrameTime = (float)glfwGetTime();
             float deltaTime = currentFrameTime - lastFrameTime;
             float moveSpeed = deltaTime * speed;
@@ -170,22 +169,7 @@ void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int
        	glfwSetWindowShouldClose(pWindow, GL_TRUE);
    	}
 }
-void getTileUV(unsigned int tileID, glm::vec2& outOffset, glm::vec2& outScale) {
-    
-    const float TEX_W = 384.0f;
-    const float TEX_H = 256.0f;
-    const float TILE_SIZE = 16.0f;
-    const int TILES_PER_ROW = static_cast<int>(TEX_W / TILE_SIZE);
-     
-    outScale.x = TILE_SIZE / TEX_W;
-    outScale.y = TILE_SIZE / TEX_H;
-    
-    int col = tileID % TILES_PER_ROW;
-    int row = tileID / TILES_PER_ROW;
- 
-    outOffset.x = (col * TILE_SIZE) / TEX_W;
-    outOffset.y = 1.0f - ((row + 1) * TILE_SIZE) / TEX_H;
-}
+
 bool checkAllCollisions(const Renderer::Sprite& a, const std::vector<std::shared_ptr<Renderer::Sprite>>& walls){
     for(auto& wall : walls) {
         if(checkCollision(a.getRect(), wall->getRect())){
