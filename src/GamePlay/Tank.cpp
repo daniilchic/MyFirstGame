@@ -1,5 +1,5 @@
 #include "Tank.h"
-#include "../Renderer/getTileUV.h"
+#include "Renderer/getTileUV.h"
 
 Tank::Tank(const std::shared_ptr<Renderer::Texture2D>& pTexture,
            const std::shared_ptr<Renderer::ShaderProgram>& pShader,

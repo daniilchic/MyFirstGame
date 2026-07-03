@@ -6,20 +6,34 @@ project(${PROJECT_NAME})
 
 add_executable(${PROJECT_NAME} 
     src/main.cpp
-    src/Renderer/ShaderProgram.cpp
-    src/Renderer/ShaderProgram.h
+
     src/Resources/ResourceManager.cpp
     src/Resources/ResourceManager.h
     src/Resources/stb_image.h
+
     src/Renderer/Texture2D.h
     src/Renderer/Texture2D.cpp
     src/Renderer/Sprite.h
     src/Renderer/Sprite.cpp
+    src/Renderer/getTileUV.h
+    src/Renderer/ShaderProgram.cpp
+    src/Renderer/ShaderProgram.h
+
     src/GamePlay/Tank.h
     src/GamePlay/Tank.cpp
+    src/GamePlay/Tile.h
+    src/GamePlay/Water.h
+    src/GamePlay/Water.cpp
+    src/GamePlay/Bush.h
+    src/GamePlay/Bush.cpp
     src/GamePlay/Wall.h
     src/GamePlay/Wall.cpp
+    src/GamePlay/GameMap.h
+    src/GamePlay/GameMap.cpp
+
+    src/Utils/WorldPosition.h
 )
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 

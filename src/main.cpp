@@ -1,10 +1,12 @@
 #include <vector>
-#include <iostream>
+#include <iostream> //std libraries
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp> //visual programming libraries
+
 #include "Renderer/Sprite.h"
 #include "Renderer/ShaderProgram.h"
 #include "Resources/ResourceManager.h"
@@ -12,29 +14,30 @@
 #include "Renderer/getTileUV.h"
 #include "GamePlay/Tank.h"
 #include "GamePlay/Wall.h"
+#include "GamePlay/GameMap.h"
+#include "Utils/WorldPosition.h" // my files
 
 void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height);
 void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mode);
 bool checkCollision(const Renderer::Sprite::Rect& a, const Renderer::Sprite::Rect& b);
-bool checkAllCollisions(const Renderer::Sprite& a, const std::vector<std::shared_ptr<Renderer::Sprite>>& walls);
-glm::vec2 worldPosition(int x, int y);
+bool checkAllCollisions(const Tank& a, const std::vector<std::shared_ptr<Tile>>& tiles);
 glm::ivec2 g_windowSize(640, 640);
 
 int main(int argc, char** argv){
     const int mapCols = 10;
     const int mapRows = 10;
 
-    int gameMap[mapRows][mapCols] = //Game map, 0 - empty, 1 - wall, 2 - grass, 3 - metal, 4 - water 
+    std::vector<std::vector<int>> mapData = //Game map, 0 - empty, 1 - wall, 2 - metal, 3 - bush, 4 - water 
     {
         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 0, 1, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-        {1, 0, 1, 0, 1, 0, 1, 1, 1, 1},
-        {1, 0, 1, 0, 1, 0, 1, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 1, 1, 1, 0, 0, 1},
-        {1, 0, 1, 0, 0, 0, 1, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 1, 0, 0, 1}, // player is on 5 col
+        {1, 0, 1, 0, 4, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 4, 0, 0, 0, 0, 1},
+        {1, 0, 1, 0, 3, 0, 1, 1, 1, 1},
+        {1, 0, 1, 0, 3, 0, 1, 0, 0, 1},
+        {1, 0, 0, 0, 2, 2, 0, 0, 0, 1},
+        {1, 0, 0, 0, 2, 2, 2, 0, 0, 1},
+        {1, 0, 1, 0, 3, 0, 1, 0, 0, 1},
+        {1, 0, 0, 0, 3, 0, 1, 0, 0, 1}, // player is on 5 col
         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
     };
     if(!glfwInit()){
@@ -80,29 +83,16 @@ int main(int argc, char** argv){
 
         auto tex = resourceManager.loadTexture("DefaultTexture", "res/textures/map_16x16.png");
         auto pShader = resourceManager.getShaderProgram("DefaultShader");
-        
+        GameMap gameMap(mapData, tex, pShader);
         auto tank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 2)); //player tank
-        std::vector<std::shared_ptr<Renderer::Sprite>> walls;
-
-        glm::vec2 offset, scale;
-        getTileUV(0, offset, scale);
-        tank->setUVRegion(offset, scale);
-        for(int row = 0; row < mapRows; row++){ //run game map and push sprites to vector
-            for(int col = 0; col < mapCols; col++){
-                int tileType = gameMap[row][col];
-                if (tileType == 0) continue; //empty
-                if (tileType == 1){ //wall
-                    auto wall = std::make_shared<Wall>(tex, pShader, worldPosition(col+1, 10-row));
-                    walls.push_back(wall);
-                }
-            }
-        }
-        glm::mat4 projectionMatrix = glm::ortho(0.f, static_cast<float>(g_windowSize.x), 0.f, static_cast<float>(g_windowSize.y), -100.f, 100.f); //initialization projection matrix
-
+        const auto& blockingTiles = gameMap.getBlockingTiles();
+        const auto& backgroundTiles = gameMap.getBackgroundTiles();
+        const auto& foregroundTiles = gameMap.getForegroundTiles();
         float speed = 100.0f; 
         float rotation1 = 0.0f;
         float lastFrameTime = (float)glfwGetTime();
         while(!glfwWindowShouldClose(pWindow)){ //game loop
+            glm::mat4 projectionMatrix = glm::ortho(0.f, static_cast<float>(g_windowSize.x), 0.f, static_cast<float>(g_windowSize.y), -100.f, 100.f); //initialization projection matrix
             float currentFrameTime = (float)glfwGetTime();
             float deltaTime = currentFrameTime - lastFrameTime;
             float moveSpeed = deltaTime * speed;
@@ -137,15 +127,21 @@ int main(int argc, char** argv){
             pos1.x += move_x * moveSpeed;
             pos1.y += move_y * moveSpeed;
             tank->setPosition(pos1);
-            if(checkAllCollisions(*tank, walls)){
+            if(checkAllCollisions(*tank, blockingTiles)){
                 pos1 = oldPos1;
             }
             tank->setRotation(rotation1);
             tank->setPosition(pos1);
             tank->draw(projectionMatrix);
-            for(auto& wall : walls){
-                wall->draw(projectionMatrix);
+
+            for(auto& backgroundTile : backgroundTiles){
+                backgroundTile->draw(projectionMatrix);
             }
+
+            for(auto& foregroundTile : foregroundTiles){
+                foregroundTile->draw(projectionMatrix);
+            }
+
 		    glfwSwapBuffers(pWindow);
 
 		    glfwPollEvents();
@@ -170,9 +166,9 @@ void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int
    	}
 }
 
-bool checkAllCollisions(const Renderer::Sprite& a, const std::vector<std::shared_ptr<Renderer::Sprite>>& walls){
-    for(auto& wall : walls) {
-        if(checkCollision(a.getRect(), wall->getRect())){
+bool checkAllCollisions(const Tank& a, const std::vector<std::shared_ptr<Tile>>& tiles){
+    for(auto& tile : tiles) {
+        if(checkCollision(a.getRect(), tile->getRect())){
             return true;
         }
     }
@@ -182,10 +178,4 @@ bool checkCollision(const Renderer::Sprite::Rect& a, const Renderer::Sprite::Rec
     bool overlapX = (a.x < b.x + b.width) && (a.x + a.width > b.x);
     bool overlapY = (a.y < b.y + b.height) && (a.y + a.height > b.y);
     return overlapX && overlapY;
-}
-glm::vec2 worldPosition(int x, int y){
-    glm::vec2 ans;
-    ans.x = (x - 1) * 64.0f + 32.0f;
-    ans.y = (y - 1) * 64.0f + 32.0f;
-    return ans;
 }
