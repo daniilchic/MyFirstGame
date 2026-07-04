@@ -30,8 +30,12 @@ add_executable(${PROJECT_NAME}
     src/GamePlay/Wall.cpp
     src/GamePlay/GameMap.h
     src/GamePlay/GameMap.cpp
+    src/GamePlay/TankController.h
+    src/GamePlay/TankController.cpp
+    src/GamePlay/InputData.h
 
     src/Utils/WorldPosition.h
+    src/Utils/Collision.h
 )
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 

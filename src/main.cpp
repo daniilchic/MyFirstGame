@@ -15,12 +15,12 @@
 #include "GamePlay/Tank.h"
 #include "GamePlay/Wall.h"
 #include "GamePlay/GameMap.h"
-#include "Utils/WorldPosition.h" // my files
+#include "Utils/WorldPosition.h"
+#include "GamePlay/TankController.h"
+#include "GamePlay/InputData.h" // my files
 
 void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height);
 void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mode);
-bool checkCollision(const Renderer::Sprite::Rect& a, const Renderer::Sprite::Rect& b);
-bool checkAllCollisions(const Tank& a, const std::vector<std::shared_ptr<Tile>>& tiles);
 glm::ivec2 g_windowSize(640, 640);
 
 int main(int argc, char** argv){
@@ -35,9 +35,9 @@ int main(int argc, char** argv){
         {1, 0, 1, 0, 3, 0, 1, 1, 1, 1},
         {1, 0, 1, 0, 3, 0, 1, 0, 0, 1},
         {1, 0, 0, 0, 2, 2, 0, 0, 0, 1},
-        {1, 0, 0, 0, 2, 2, 2, 0, 0, 1},
-        {1, 0, 1, 0, 3, 0, 1, 0, 0, 1},
-        {1, 0, 0, 0, 3, 0, 1, 0, 0, 1}, // player is on 5 col
+        {1, 0, 0, 0, 1, 2, 2, 0, 0, 1},
+        {1, 0, 1, 0, 0, 0, 1, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 1, 0, 0, 1}, // player is on 5 col
         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
     };
     if(!glfwInit()){
@@ -89,49 +89,22 @@ int main(int argc, char** argv){
         const auto& backgroundTiles = gameMap.getBackgroundTiles();
         const auto& foregroundTiles = gameMap.getForegroundTiles();
         float speed = 100.0f; 
-        float rotation1 = 0.0f;
         float lastFrameTime = (float)glfwGetTime();
         while(!glfwWindowShouldClose(pWindow)){ //game loop
             glm::mat4 projectionMatrix = glm::ortho(0.f, static_cast<float>(g_windowSize.x), 0.f, static_cast<float>(g_windowSize.y), -100.f, 100.f); //initialization projection matrix
             float currentFrameTime = (float)glfwGetTime();
             float deltaTime = currentFrameTime - lastFrameTime;
-            float moveSpeed = deltaTime * speed;
-            char move_x = 0;
-            char move_y = 0;
             lastFrameTime = currentFrameTime;
-            glm::vec2 oldPos1 = tank->getPosition();
-            glm::vec2 pos1 = oldPos1;
 		    glClear(GL_COLOR_BUFFER_BIT);
-	        
-            if(glfwGetKey(pWindow, GLFW_KEY_D) == GLFW_PRESS){
-                move_x++; 
-                rotation1 = 270.0f;
-            }
-            if(glfwGetKey(pWindow, GLFW_KEY_A) == GLFW_PRESS){
-                move_x--;
-                rotation1 = 90.0f;
-            }
+	      
+            InputData input;
+            if (glfwGetKey(pWindow, GLFW_KEY_W) == GLFW_PRESS) input.moveY = 1;
+            if (glfwGetKey(pWindow, GLFW_KEY_S) == GLFW_PRESS) input.moveY = -1;
+            if (glfwGetKey(pWindow, GLFW_KEY_A) == GLFW_PRESS) input.moveX = -1;
+            if (glfwGetKey(pWindow, GLFW_KEY_D) == GLFW_PRESS) input.moveX = 1;
 
-            if(glfwGetKey(pWindow, GLFW_KEY_S) == GLFW_PRESS){
-                move_y--;
-                rotation1 = 180.0f;
-            }
-            if(glfwGetKey(pWindow, GLFW_KEY_W) == GLFW_PRESS){
-                move_y++;
-                rotation1 = 0.0f;
-            }
-
-            if(move_x != 0 && move_y != 0){
-                move_x = 0;
-            }
-            pos1.x += move_x * moveSpeed;
-            pos1.y += move_y * moveSpeed;
-            tank->setPosition(pos1);
-            if(checkAllCollisions(*tank, blockingTiles)){
-                pos1 = oldPos1;
-            }
-            tank->setRotation(rotation1);
-            tank->setPosition(pos1);
+            TankController::update(*tank, blockingTiles, input, deltaTime);
+ 
             tank->draw(projectionMatrix);
 
             for(auto& backgroundTile : backgroundTiles){
@@ -166,16 +139,3 @@ void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int
    	}
 }
 
-bool checkAllCollisions(const Tank& a, const std::vector<std::shared_ptr<Tile>>& tiles){
-    for(auto& tile : tiles) {
-        if(checkCollision(a.getRect(), tile->getRect())){
-            return true;
-        }
-    }
-    return false;
-}
-bool checkCollision(const Renderer::Sprite::Rect& a, const Renderer::Sprite::Rect& b){
-    bool overlapX = (a.x < b.x + b.width) && (a.x + a.width > b.x);
-    bool overlapY = (a.y < b.y + b.height) && (a.y + a.height > b.y);
-    return overlapX && overlapY;
-}
