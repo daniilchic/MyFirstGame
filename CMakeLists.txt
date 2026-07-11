@@ -19,6 +19,8 @@ add_executable(${PROJECT_NAME}
     src/Renderer/ShaderProgram.cpp
     src/Renderer/ShaderProgram.h
 
+    src/GamePlay/Bullet.h
+    src/GamePlay/Bullet.cpp
     src/GamePlay/Tank.h
     src/GamePlay/Tank.cpp
     src/GamePlay/Tile.h

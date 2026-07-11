@@ -47,6 +47,18 @@ namespace Renderer{
         m_rotation = newRotation;
     }
 
+    std::shared_ptr<Texture2D> Sprite::getTexture() const{
+        return m_pTexture;
+    }
+    void Sprite::setTexture(std::shared_ptr<Texture2D> texture){
+        m_pTexture = texture;
+    }
+    std::shared_ptr<ShaderProgram> Sprite::getShader() const{
+        return m_pShaderProgram;
+    }
+    void Sprite::setShader(std::shared_ptr<ShaderProgram> shader){
+        m_pShaderProgram = shader;
+    }
     void Sprite::initRenderData(){
         GLfloat points[] = {
             -0.5f,  0.5f, 0.0f,

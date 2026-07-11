@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream> //std libraries
+#include <algorithm>                    
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -88,7 +89,9 @@ int main(int argc, char** argv){
         const auto& blockingTiles = gameMap.getBlockingTiles();
         const auto& backgroundTiles = gameMap.getBackgroundTiles();
         const auto& foregroundTiles = gameMap.getForegroundTiles();
-        float speed = 100.0f; 
+        std::vector<std::shared_ptr<Bullet>> bullets;
+        float speed = 100.0f;
+        float shootCooldown = 0.0f;
         float lastFrameTime = (float)glfwGetTime();
         while(!glfwWindowShouldClose(pWindow)){ //game loop
             glm::mat4 projectionMatrix = glm::ortho(0.f, static_cast<float>(g_windowSize.x), 0.f, static_cast<float>(g_windowSize.y), -100.f, 100.f); //initialization projection matrix
@@ -96,19 +99,33 @@ int main(int argc, char** argv){
             float deltaTime = currentFrameTime - lastFrameTime;
             lastFrameTime = currentFrameTime;
 		    glClear(GL_COLOR_BUFFER_BIT);
-	      
+	        shootCooldown -= deltaTime;
             InputData input;
             if (glfwGetKey(pWindow, GLFW_KEY_W) == GLFW_PRESS) input.moveY = 1;
             if (glfwGetKey(pWindow, GLFW_KEY_S) == GLFW_PRESS) input.moveY = -1;
             if (glfwGetKey(pWindow, GLFW_KEY_A) == GLFW_PRESS) input.moveX = -1;
             if (glfwGetKey(pWindow, GLFW_KEY_D) == GLFW_PRESS) input.moveX = 1;
 
+            if (glfwGetKey(pWindow, GLFW_KEY_SPACE) == GLFW_PRESS && shootCooldown <= 0){
+                auto bullet = tank->shoot();
+                bullets.push_back(bullet);
+                shootCooldown = 0.5f;
+            }
+
             TankController::update(*tank, blockingTiles, input, deltaTime);
- 
+            for(auto& bullet : bullets){
+                bullet->update(deltaTime);
+            }
+            bullets.erase(std::remove_if(bullets.begin(), bullets.end(),
+                        [](const auto& b){return b->isDestroyed();}), bullets.end());
             tank->draw(projectionMatrix);
 
             for(auto& backgroundTile : backgroundTiles){
                 backgroundTile->draw(projectionMatrix);
+            }
+
+            for(auto& bullet : bullets){
+                bullet->draw(projectionMatrix);
             }
 
             for(auto& foregroundTile : foregroundTiles){

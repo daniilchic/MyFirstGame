@@ -27,6 +27,11 @@ namespace Renderer{
             void setSize(const glm::vec2& newSize);
             float getRotation() const;
             void setRotation(const float newRotation);
+            
+            std::shared_ptr<Texture2D> getTexture() const;
+            void setTexture(std::shared_ptr<Texture2D> texture);
+            std::shared_ptr<ShaderProgram> getShader() const;
+            void setShader(std::shared_ptr<ShaderProgram> shader);
 
             void draw(const glm::mat4& projectionMatrix);
             static void initRenderData();

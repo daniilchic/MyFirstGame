@@ -9,8 +9,9 @@ class Bullet : public Renderer::Sprite {
                const glm::vec2& position,
                const glm::vec2& direction, 
                const int damage = 1,
+               const float rotation = 0.0f,
                const float speed = 300.f,
-               const glm::vec2& size = glm::vec2(8.f, 8.f));
+               const glm::vec2& size = glm::vec2(12.f, 12.f));
         ~Bullet() = default;
 
         void update(float deltaTime);

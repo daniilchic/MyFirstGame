@@ -1,12 +1,21 @@
 #pragma once
-#include "../Renderer/Sprite.h"
+#include "Renderer/Sprite.h"
+#include "Bullet.h"
 
 class Tank : public Renderer::Sprite {
     public:
         Tank(const std::shared_ptr<Renderer::Texture2D>& pTexture,
              const std::shared_ptr<Renderer::ShaderProgram>& pShader,
              const glm::vec2& position,
+             const int tankDamage = 0,
              const glm::vec2& size = glm::vec2(64.f, 64.f),
              const float rotation = 0.f);
         ~Tank();
+
+        int getTankDamage() const;
+        void setTankDamage(const int newDamage);
+
+        std::shared_ptr<Bullet> shoot();
+    private:
+        int m_tankDamage;
 };
