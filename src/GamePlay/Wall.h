@@ -8,7 +8,8 @@ class Wall : public Tile {
                 const glm::vec2& position,
                 const bool isMetal = false,
                 const glm::vec2& size = glm::vec2(64.f, 64.f),
-                const float rotation = 0.f);
+                const float rotation = 0.f,
+                const bool bulletBlock = true);
            ~Wall();
            bool isPassable() const override;
 };

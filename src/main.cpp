@@ -114,7 +114,7 @@ int main(int argc, char** argv){
 
             TankController::update(*tank, blockingTiles, input, deltaTime);
             for(auto& bullet : bullets){
-                bullet->update(deltaTime);
+                bullet->update(deltaTime, blockingTiles);
             }
             bullets.erase(std::remove_if(bullets.begin(), bullets.end(),
                         [](const auto& b){return b->isDestroyed();}), bullets.end());

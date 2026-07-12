@@ -1,6 +1,9 @@
 #pragma once
 #include "Renderer/Sprite.h"
 #include "glm/vec2.hpp"
+#include <vector>
+#include <memory>
+#include "Tile.h"
 
 class Bullet : public Renderer::Sprite {
     public:
@@ -14,7 +17,7 @@ class Bullet : public Renderer::Sprite {
                const glm::vec2& size = glm::vec2(12.f, 12.f));
         ~Bullet() = default;
 
-        void update(float deltaTime);
+        void update(const float deltaTime, const std::vector<std::shared_ptr<Tile>>& blockingTiles);
         bool isDestroyed() const { return m_destroyed; }
 
     private:

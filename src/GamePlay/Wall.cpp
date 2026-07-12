@@ -6,8 +6,9 @@ Wall::Wall(const std::shared_ptr<Renderer::Texture2D>& pTexture,
            const glm::vec2& position,
            const bool isMetal,
            const glm::vec2& size, 
-           const float rotation)
-           : Tile(pTexture, pShader, position, size, rotation)
+           const float rotation,
+           const bool bulletBlock)
+           : Tile(pTexture, pShader, position, size, rotation, bulletBlock)
 {
     
     glm::vec2 offset, scale;

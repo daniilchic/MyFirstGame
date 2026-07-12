@@ -1,5 +1,7 @@
 #include "Bullet.h"
 #include "Renderer/getTileUV.h"
+#include "Utils/Collision.h"
+#include "Tile.h"
 
 Bullet::Bullet(const std::shared_ptr<Renderer::Texture2D>& pTexture,
                const std::shared_ptr<Renderer::ShaderProgram>& pShader,
@@ -33,13 +35,17 @@ Bullet::Bullet(const std::shared_ptr<Renderer::Texture2D>& pTexture,
     setUVRegion(offset, scale);
 }
 
-void Bullet::update(float deltaTime){
+void Bullet::update(const float deltaTime, const std::vector<std::shared_ptr<Tile>>& blockingTiles){
     if (m_destroyed) {return;}
 
     glm::vec2 newPosition = getPosition();
     newPosition.x += m_direction.x * deltaTime * m_speed;
     newPosition.y += m_direction.y * deltaTime * m_speed;
     setPosition(newPosition);
+
+    if(checkAllCollisions(*this, blockingTiles, true)){
+        m_destroyed = true;
+    }
 
     m_lifetime -= deltaTime;
     if(m_lifetime <= 0.0f){m_destroyed = true;}
