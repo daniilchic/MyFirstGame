@@ -61,7 +61,7 @@ int main(int argc, char** argv){
     glfwSetWindowSizeCallback(pWindow, glfwWindowSizeCallback);
     glfwSetKeyCallback(pWindow, glfwKeyCallback);
     glfwMakeContextCurrent(pWindow);
-
+    glfwSwapInterval(1);
     if(!gladLoadGL()){
         std::cout << "Can't load Glad" << std::endl;
     	return -1;
