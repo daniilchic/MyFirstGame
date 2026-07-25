@@ -36,12 +36,12 @@ GameMap::GameMap(const std::vector<std::vector<int>>& map, const std::shared_ptr
         }
     }
 }
-const std::vector<std::shared_ptr<Tile>>& GameMap::getBackgroundTiles() const{
+std::vector<std::shared_ptr<Tile>>& GameMap::getBackgroundTiles(){
     return m_backgroundTiles;
 }
-const std::vector<std::shared_ptr<Tile>>& GameMap::getForegroundTiles() const{
+std::vector<std::shared_ptr<Tile>>& GameMap::getForegroundTiles(){
     return m_foregroundTiles;
 }
-const std::vector<std::shared_ptr<Tile>>& GameMap::getBlockingTiles() const{
+std::vector<std::shared_ptr<Tile>>& GameMap::getBlockingTiles() {
     return m_blockingTiles;
 }

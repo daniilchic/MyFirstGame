@@ -9,14 +9,9 @@ inline bool checkCollision(const Renderer::Sprite::Rect& a, const Renderer::Spri
     bool overlapY = (a.y < b.y + b.height) && (a.y + a.height > b.y);
     return overlapX && overlapY;
 }
-inline bool checkAllCollisions(const Renderer::Sprite& a, const std::vector<std::shared_ptr<Tile>>& tiles, bool isBullet = false){
+inline bool checkAllCollisions(const Renderer::Sprite& a, const std::vector<std::shared_ptr<Tile>>& tiles){
     for(auto& tile : tiles) {
         if(checkCollision(a.getRect(), tile->getRect())){
-            if(isBullet){
-                if(!tile->getBulletBlock()){
-                    return false;
-                }
-            }
             return true;
         }
     }

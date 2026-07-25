@@ -85,10 +85,10 @@ int main(int argc, char** argv){
         auto tex = resourceManager.loadTexture("DefaultTexture", "res/textures/map_16x16.png");
         auto pShader = resourceManager.getShaderProgram("DefaultShader");
         GameMap gameMap(mapData, tex, pShader);
-        auto tank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 2)); //player tank
-        const auto& blockingTiles = gameMap.getBlockingTiles();
-        const auto& backgroundTiles = gameMap.getBackgroundTiles();
-        const auto& foregroundTiles = gameMap.getForegroundTiles();
+        auto tank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 2), 1); //player tank
+        auto& blockingTiles = gameMap.getBlockingTiles();
+        auto& backgroundTiles = gameMap.getBackgroundTiles();
+        auto& foregroundTiles = gameMap.getForegroundTiles();
         std::vector<std::shared_ptr<Bullet>> bullets;
         float speed = 100.0f;
         float shootCooldown = 0.0f;
@@ -116,6 +116,12 @@ int main(int argc, char** argv){
             for(auto& bullet : bullets){
                 bullet->update(deltaTime, blockingTiles);
             }
+            blockingTiles.erase(std::remove_if(blockingTiles.begin(), blockingTiles.end(),
+                        [](const auto& b){return b->isDestroyed();}), blockingTiles.end());
+            backgroundTiles.erase(std::remove_if(backgroundTiles.begin(), backgroundTiles.end(),
+                        [](const auto& b){return b->isDestroyed();}), backgroundTiles.end());
+	    foregroundTiles.erase(std::remove_if(foregroundTiles.begin(), foregroundTiles.end(),
+		        [](const auto& b){return b->isDestroyed();}), foregroundTiles.end());
             bullets.erase(std::remove_if(bullets.begin(), bullets.end(),
                         [](const auto& b){return b->isDestroyed();}), bullets.end());
             tank->draw(projectionMatrix);

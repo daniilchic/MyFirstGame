@@ -2,7 +2,7 @@
 #include "Renderer/getTileUV.h"
 #include "Utils/Collision.h"
 #include "Tile.h"
-
+#include <iostream>
 Bullet::Bullet(const std::shared_ptr<Renderer::Texture2D>& pTexture,
                const std::shared_ptr<Renderer::ShaderProgram>& pShader,
                const glm::vec2& position,
@@ -43,8 +43,15 @@ void Bullet::update(const float deltaTime, const std::vector<std::shared_ptr<Til
     newPosition.y += m_direction.y * deltaTime * m_speed;
     setPosition(newPosition);
 
-    if(checkAllCollisions(*this, blockingTiles, true)){
-        m_destroyed = true;
+    for(auto& tile : blockingTiles){
+        if(checkCollision(getRect(), tile->getRect())){
+            if(tile->getBulletBlock()){
+		std::cout << "BULLET DAMAGE VALUE IS: " << m_damage << std::endl;
+		tile->damage(m_damage);
+		m_destroyed = true;
+		break;
+	    }
+	}
     }
 
     m_lifetime -= deltaTime;

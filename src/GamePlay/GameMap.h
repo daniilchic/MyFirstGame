@@ -13,9 +13,9 @@ class GameMap {
         GameMap(const std::vector<std::vector<int>>& map, const std::shared_ptr<Renderer::Texture2D>& pTexture, const std::shared_ptr<Renderer::ShaderProgram>& pShader);
         ~GameMap() = default;
         
-        const std::vector<std::shared_ptr<Tile>>& getBackgroundTiles() const;
-        const std::vector<std::shared_ptr<Tile>>& getForegroundTiles() const;
-        const std::vector<std::shared_ptr<Tile>>& getBlockingTiles() const;
+        std::vector<std::shared_ptr<Tile>>& getBackgroundTiles() ;
+        std::vector<std::shared_ptr<Tile>>& getForegroundTiles() ;
+        std::vector<std::shared_ptr<Tile>>& getBlockingTiles() ;
     private:
         std::vector<std::shared_ptr<Tile>> m_backgroundTiles;
         std::vector<std::shared_ptr<Tile>> m_foregroundTiles;

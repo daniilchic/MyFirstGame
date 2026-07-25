@@ -8,7 +8,7 @@ Bush::Bush( const std::shared_ptr<Renderer::Texture2D>& pTexture,
             const glm::vec2& size,
             const float rotation,
             const bool bulletBlock)
-            : Tile(pTexture, pShader, position, size, rotation, bulletBlock)
+            : Tile(pTexture, pShader, position, 1, size, rotation, bulletBlock)
 {
     glm::vec2 offset, scale;
     getTileUV(65, offset, scale);
