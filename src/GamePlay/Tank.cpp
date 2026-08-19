@@ -7,10 +7,12 @@ Tank::Tank(const std::shared_ptr<Renderer::Texture2D>& pTexture,
            const std::shared_ptr<Renderer::ShaderProgram>& pShader,
            const glm::vec2& position,
            const int tankDamage,
+           const int tankHealth,
            const glm::vec2& size,
            const float rotation)
            :Sprite(pTexture, pShader, position, size, rotation),
-           m_tankDamage(tankDamage)
+           m_tankDamage(tankDamage),
+           m_tankHealth(tankHealth)
 {
     glm::vec2 offset, scale;
     getTileUV(0, offset, scale);
@@ -27,6 +29,16 @@ void Tank::setTankDamage(const int newDamage){
     if(newDamage > 0 && newDamage < 1000000){
         m_tankDamage = newDamage;
     }
+}
+
+int Tank::getTankHealth() const{
+    return m_tankHealth;
+}
+void Tank::setTankHealth(const int newHealth){
+    m_tankHealth = newHealth;
+}
+void Tank::damage(const int dmg){
+    setTankHealth(getTankHealth() - dmg);
 }
 
 std::shared_ptr<Bullet> Tank::shoot(){

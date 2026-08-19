@@ -39,6 +39,6 @@ void Wall::damage(const int dmg){
     std::cout << "HP AFTER " << getHealth() << std::endl;
     if(getHealth() <= 0){
         destroy();
-	std::cout << "WALL WAS DESTROYED";
+	    std::cout << "WALL WAS DESTROYED" << std::endl;
     }
 }
