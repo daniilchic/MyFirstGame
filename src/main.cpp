@@ -18,6 +18,7 @@
 #include "GamePlay/GameMap.h"
 #include "Utils/WorldPosition.h"
 #include "GamePlay/TankController.h"
+#include "GamePlay/Explosion.h"
 #include "GamePlay/InputData.h" // my files
 
 void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height);
@@ -90,9 +91,11 @@ int main(int argc, char** argv){
         auto& backgroundTiles = gameMap.getBackgroundTiles();
         auto& foregroundTiles = gameMap.getForegroundTiles();
         std::vector<std::shared_ptr<Bullet>> bullets;
+        std::vector<std::shared_ptr<Explosion>> explosions;
         float speed = 100.0f;
         float shootCooldown = 0.0f;
         float lastFrameTime = (float)glfwGetTime();
+
         while(!glfwWindowShouldClose(pWindow)){ //game loop
             glm::mat4 projectionMatrix = glm::ortho(0.f, static_cast<float>(g_windowSize.x), 0.f, static_cast<float>(g_windowSize.y), -100.f, 100.f); //initialization projection matrix
             float currentFrameTime = (float)glfwGetTime();
@@ -116,16 +119,32 @@ int main(int argc, char** argv){
             for(auto& bullet : bullets){
                 bullet->update(deltaTime, blockingTiles);
             }
+            for(auto& explosion : explosions){
+                explosion->update(deltaTime);
+            }
+
+            for(auto& bullet : bullets){
+                if(bullet->isDestroyed()){
+                    auto explosion = std::make_shared<Explosion>(tex, pShader, bullet->getPosition());
+                    explosions.push_back(explosion);
+                }
+            }
+
             blockingTiles.erase(std::remove_if(blockingTiles.begin(), blockingTiles.end(),
                         [](const auto& b){return b->isDestroyed();}), blockingTiles.end());
             backgroundTiles.erase(std::remove_if(backgroundTiles.begin(), backgroundTiles.end(),
                         [](const auto& b){return b->isDestroyed();}), backgroundTiles.end());
-	    foregroundTiles.erase(std::remove_if(foregroundTiles.begin(), foregroundTiles.end(),
+	        foregroundTiles.erase(std::remove_if(foregroundTiles.begin(), foregroundTiles.end(),
 		        [](const auto& b){return b->isDestroyed();}), foregroundTiles.end());
+            explosions.erase(std::remove_if(explosions.begin(), explosions.end(),
+                        [](const auto& b){return b->isFinished();}), explosions.end());
             bullets.erase(std::remove_if(bullets.begin(), bullets.end(),
                         [](const auto& b){return b->isDestroyed();}), bullets.end());
             tank->draw(projectionMatrix);
 
+            for(auto& explosion : explosions){
+                explosion->draw(projectionMatrix);
+            }
             for(auto& backgroundTile : backgroundTiles){
                 backgroundTile->draw(projectionMatrix);
             }
@@ -137,7 +156,6 @@ int main(int argc, char** argv){
             for(auto& foregroundTile : foregroundTiles){
                 foregroundTile->draw(projectionMatrix);
             }
-
 		    glfwSwapBuffers(pWindow);
 
 		    glfwPollEvents();

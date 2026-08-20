@@ -35,6 +35,8 @@ add_executable(${PROJECT_NAME}
     src/GamePlay/TankController.h
     src/GamePlay/TankController.cpp
     src/GamePlay/InputData.h
+    src/GamePlay/Explosion.h
+    src/GamePlay/Explosion.cpp
 
     src/Utils/WorldPosition.h
     src/Utils/Collision.h
