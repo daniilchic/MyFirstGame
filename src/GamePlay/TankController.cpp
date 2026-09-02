@@ -5,7 +5,8 @@ void TankController::update(Tank& tank, const std::vector<std::shared_ptr<Tile>>
                             const InputData& input, const float deltaTime, const float speed)
 {
     float moveSpeed = deltaTime * speed;
-    
+    tank.setShootCooldown(tank.getShootCooldown() - deltaTime);
+    tank.setAiCooldown(tank.getAiCooldown() - deltaTime);
     char moveX = input.moveX;
     char moveY = input.moveY;
 

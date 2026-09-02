@@ -99,69 +99,28 @@ int main(int argc, char** argv){
         std::vector<std::shared_ptr<Bullet>> enemyBullets;
         std::vector<std::shared_ptr<Explosion>> explosions;
         float speed = 100.0f;
-        float shootCooldown = 0.0f;
-        float enemyShootCooldown = 0.0f;
         float respawnCooldown = 3.0f;
         float enemySpawnCooldown = 0.0f;
-        float randomCooldown = 0.0f;
         float lastFrameTime = (float)glfwGetTime();
-        int randomDir;
         while(!glfwWindowShouldClose(pWindow)){ //game loop
             glm::mat4 projectionMatrix = glm::ortho(0.f, static_cast<float>(g_windowSize.x), 0.f, static_cast<float>(g_windowSize.y), -100.f, 100.f); //initialization projection matrix
             float currentFrameTime = (float)glfwGetTime();
             float deltaTime = currentFrameTime - lastFrameTime;
             lastFrameTime = currentFrameTime;
 		    glClear(GL_COLOR_BUFFER_BIT);
-	        shootCooldown -= deltaTime;
             enemySpawnCooldown -= deltaTime;
-            enemyShootCooldown -= deltaTime;
-            randomCooldown -= deltaTime;
             if(enemySpawnCooldown <= 0.0f){
                auto enemyTank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 8), false, 1);
                enemyTanks.push_back(enemyTank);
                enemySpawnCooldown = 10.0f;
             }
+
             InputData input;
-            if (glfwGetKey(pWindow, GLFW_KEY_W) == GLFW_PRESS) input.moveY = 1;
-            if (glfwGetKey(pWindow, GLFW_KEY_S) == GLFW_PRESS) input.moveY = -1;
-            if (glfwGetKey(pWindow, GLFW_KEY_A) == GLFW_PRESS) input.moveX = -1;
-            if (glfwGetKey(pWindow, GLFW_KEY_D) == GLFW_PRESS) input.moveX = 1;
+            tank->playerMove(input, pWindow, bullets);
             for(auto& enemyTank : enemyTanks){
                 InputData enemyInput;
-                if(randomCooldown <= 0.0f){
-                    randomDir = distr(gen);
-                    randomCooldown = 0.3f;
-                }
-                std::cout << randomDir << std::endl;
-                switch(randomDir){
-                    case 0:
-                        enemyInput.moveY = 1;
-                        break;
-                    case 1:
-                        enemyInput.moveY = -1;
-                        break;
-                    case 2:
-                        enemyInput.moveX = 1;
-                        break;
-                    case 3:
-                        enemyInput.moveX = -1;
-                        break;
-                    case 4:
-                        if(enemyShootCooldown <= 0.0f){
-                            auto enemyBullet = enemyTank->shoot();
-                            enemyBullets.push_back(enemyBullet);
-                            enemyShootCooldown = 0.5f;
-                        }
-                    default:
-                        break;
-                }
+                enemyTank->aiMove(enemyInput, gen, enemyBullets);
                 TankController::update(*enemyTank, blockingTiles, enemyInput, deltaTime);
-                
-            }
-            if (glfwGetKey(pWindow, GLFW_KEY_SPACE) == GLFW_PRESS && shootCooldown <= 0){
-                auto bullet = tank->shoot();
-                bullets.push_back(bullet);
-                shootCooldown = 0.5f;
             }
 
             TankController::update(*tank, blockingTiles, input, deltaTime);

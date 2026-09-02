@@ -1,6 +1,9 @@
 #pragma once
 #include "Renderer/Sprite.h"
+#include <GLFW/glfw3.h>
 #include "Bullet.h"
+#include "InputData.h"
+#include <random>
 
 class Tank : public Renderer::Sprite {
     public:
@@ -19,11 +22,23 @@ class Tank : public Renderer::Sprite {
         int getTankHealth() const;
         void setTankHealth(const int newHealth);
         void damage(const int dmg);
-        bool IsTankPlayer() const;
+        bool isTankPlayer() const;
+        float getShootCooldown() const;
+        void setShootCooldown(const float newCooldown);
+        float getAiCooldown() const;
+        void setAiCooldown(const float newCooldown);
+        int getAiDirection() const;
+        void setAiDirection(const int newDirection);
+
+        void playerMove(InputData& input, GLFWwindow* pWindow, std::vector<std::shared_ptr<Bullet>>& bullets);
+        void aiMove(InputData& input, std::mt19937& gen, std::vector<std::shared_ptr<Bullet>>& Bullets);
         std::shared_ptr<Bullet> shoot();
 
     private:
         int m_tankDamage;
         int m_tankHealth;
         bool m_isPlayer;
+        float m_shootCooldown;
+        float m_aiCooldown;
+        int m_aiDirection;
 };
