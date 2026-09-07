@@ -30,7 +30,7 @@ class Tank : public Renderer::Sprite {
         int getAiDirection() const;
         void setAiDirection(const int newDirection);
 
-        void playerMove(InputData& input, GLFWwindow* pWindow, std::vector<std::shared_ptr<Bullet>>& bullets);
+        void updateCooldowns(const float deltaTime);
         void aiMove(InputData& input, std::mt19937& gen, std::vector<std::shared_ptr<Bullet>>& Bullets);
         std::shared_ptr<Bullet> shoot();
 

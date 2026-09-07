@@ -10,5 +10,5 @@ class TankController {
     public:
         TankController() = delete;
         static void update(Tank& tank, const std::vector<std::shared_ptr<Tile>>& blockingTiles, 
-                           const InputData& input, const float deltaTime, const float speed = 100.0f);
+                           const InputData& input, const float deltaTime, std::vector<std::shared_ptr<Bullet>>& bullets, const float speed = 100.0f);
 };

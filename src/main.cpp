@@ -21,6 +21,7 @@
 #include "GamePlay/TankController.h"
 #include "GamePlay/Explosion.h"
 #include "GamePlay/InputData.h" // my files
+#include "Utils/InputManager.h"
 
 void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height);
 void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mode);
@@ -109,21 +110,22 @@ int main(int argc, char** argv){
             lastFrameTime = currentFrameTime;
 		    glClear(GL_COLOR_BUFFER_BIT);
             enemySpawnCooldown -= deltaTime;
+            tank->updateCooldowns(deltaTime);
             if(enemySpawnCooldown <= 0.0f){
                auto enemyTank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 8), false, 1);
                enemyTanks.push_back(enemyTank);
                enemySpawnCooldown = 10.0f;
             }
 
-            InputData input;
-            tank->playerMove(input, pWindow, bullets);
+            InputData input = readInput(pWindow);
             for(auto& enemyTank : enemyTanks){
+                enemyTank->updateCooldowns(deltaTime);
                 InputData enemyInput;
                 enemyTank->aiMove(enemyInput, gen, enemyBullets);
-                TankController::update(*enemyTank, blockingTiles, enemyInput, deltaTime);
+                TankController::update(*enemyTank, blockingTiles, enemyInput, deltaTime, enemyBullets);
             }
 
-            TankController::update(*tank, blockingTiles, input, deltaTime);
+            TankController::update(*tank, blockingTiles, input, deltaTime, bullets);
             for(auto& bullet : bullets){
                 bullet->update(deltaTime, blockingTiles);
             }

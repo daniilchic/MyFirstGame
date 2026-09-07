@@ -1,12 +1,11 @@
 #include "TankController.h"
 #include "Utils/Collision.h"
+#include "Bullet.h"
 
 void TankController::update(Tank& tank, const std::vector<std::shared_ptr<Tile>>& blockingTiles, 
-                            const InputData& input, const float deltaTime, const float speed)
+                            const InputData& input, const float deltaTime, std::vector<std::shared_ptr<Bullet>>& bullets, const float speed)
 {
     float moveSpeed = deltaTime * speed;
-    tank.setShootCooldown(tank.getShootCooldown() - deltaTime);
-    tank.setAiCooldown(tank.getAiCooldown() - deltaTime);
     char moveX = input.moveX;
     char moveY = input.moveY;
 
@@ -30,6 +29,13 @@ void TankController::update(Tank& tank, const std::vector<std::shared_ptr<Tile>>
         pos.y = oldPos.y;
         tank.setPosition(pos);
     }
+
+    if(input.fire && tank.getShootCooldown() <= 0){
+        std::shared_ptr<Bullet> bullet = tank.shoot();
+        bullets.push_back(bullet);
+        tank.setShootCooldown(0.5f);
+    }
+
 
     if(moveY > 0){
         tank.setRotation(0.0f);

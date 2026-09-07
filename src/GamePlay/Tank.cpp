@@ -2,7 +2,6 @@
 #include "Renderer/getTileUV.h"
 #include "Bullet.h"
 #include <glm/vec2.hpp>
-#include <GLFW/glfw3.h>
 
 Tank::Tank(const std::shared_ptr<Renderer::Texture2D>& pTexture,
            const std::shared_ptr<Renderer::ShaderProgram>& pShader,
@@ -68,18 +67,6 @@ void Tank::setAiDirection(const int newDirection){
     m_aiDirection = newDirection;
 }
 
-void Tank::playerMove(InputData& input, GLFWwindow* pWindow, std::vector<std::shared_ptr<Bullet>>& bullets){
-    if (glfwGetKey(pWindow, GLFW_KEY_W) == GLFW_PRESS) input.moveY = 1;
-    if (glfwGetKey(pWindow, GLFW_KEY_S) == GLFW_PRESS) input.moveY = -1;
-    if (glfwGetKey(pWindow, GLFW_KEY_A) == GLFW_PRESS) input.moveX = -1;
-    if (glfwGetKey(pWindow, GLFW_KEY_D) == GLFW_PRESS) input.moveX = 1;
-    if (glfwGetKey(pWindow, GLFW_KEY_SPACE) == GLFW_PRESS && getShootCooldown() <= 0){
-        auto bullet = shoot();
-        bullets.push_back(bullet);
-        setShootCooldown(0.5f);
-    }
-
-}
 void Tank::aiMove(InputData& input, std::mt19937& gen, std::vector<std::shared_ptr<Bullet>>& enemyBullets){
     if(getAiCooldown() <= 0.0f){
         std::uniform_int_distribution<> distr(0, 4);
@@ -100,14 +87,15 @@ void Tank::aiMove(InputData& input, std::mt19937& gen, std::vector<std::shared_p
             input.moveX = -1;
             break;
         case 4:
-            if(getShootCooldown() <= 0.0f){
-                auto enemyBullet = shoot();
-                enemyBullets.push_back(enemyBullet);
-                setShootCooldown(0.5f);
-            }
+            input.fire = true;
+            break;
         default:
             break;
     }
+}
+void Tank::updateCooldowns(const float deltaTime){
+    if(getShootCooldown() > 0) setShootCooldown(getShootCooldown() - deltaTime);
+    if(getAiCooldown() > 0) setAiCooldown(getAiCooldown() - deltaTime);
 }
 std::shared_ptr<Bullet> Tank::shoot(){
     glm::vec2 dir;
