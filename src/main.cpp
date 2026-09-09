@@ -22,6 +22,7 @@
 #include "GamePlay/Explosion.h"
 #include "GamePlay/InputData.h" // my files
 #include "Utils/InputManager.h"
+#include "Utils/CollisionSystem.h"
 
 void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height);
 void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mode);
@@ -33,16 +34,16 @@ int main(int argc, char** argv){
 
     std::vector<std::vector<int>> mapData = //Game map, 0 - empty, 1 - wall, 2 - metal, 3 - bush, 4 - water 
     {
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 0, 1, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 1, 0, 3, 4, 1, 1, 1, 1},
-        {1, 0, 1, 0, 3, 0, 1, 0, 0, 1},
-        {1, 0, 0, 0, 2, 2, 0, 0, 0, 1},
-        {1, 0, 0, 0, 1, 2, 2, 0, 0, 1},
-        {1, 0, 1, 0, 0, 0, 1, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 1, 0, 0, 1}, // player is on 5 col
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+        {2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+        {2, 0, 1, 0, 0, 0, 0, 1, 0, 2},
+        {2, 0, 0, 0, 0, 0, 0, 1, 0, 2},
+        {2, 4, 1, 4, 3, 4, 1, 1, 1, 2},
+        {2, 0, 1, 0, 3, 3, 1, 1, 0, 2},
+        {2, 0, 0, 1, 3, 3, 0, 0, 0, 2},
+        {2, 0, 1, 1, 1, 1, 1, 4, 4, 2},
+        {2, 0, 1, 0, 0, 0, 1, 0, 0, 2},
+        {2, 0, 0, 0, 0, 0, 1, 0, 0, 2}, // player is on 5 col
+        {2, 2, 2, 2, 2, 2, 2, 2, 2, 2}
     };
     if(!glfwInit()){
 	std::cout << "glfwInit failed" << std::endl;
@@ -91,13 +92,12 @@ int main(int argc, char** argv){
         auto tex = resourceManager.loadTexture("DefaultTexture", "res/textures/map_16x16.png");
         auto pShader = resourceManager.getShaderProgram("DefaultShader");
         GameMap gameMap(mapData, tex, pShader);
-        auto tank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 2), true, 1); //player tank
+        auto tank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 2), true); //player tank
         std::vector<std::shared_ptr<Tank>> enemyTanks;
         auto& blockingTiles = gameMap.getBlockingTiles();
         auto& backgroundTiles = gameMap.getBackgroundTiles();
         auto& foregroundTiles = gameMap.getForegroundTiles();
         std::vector<std::shared_ptr<Bullet>> bullets;
-        std::vector<std::shared_ptr<Bullet>> enemyBullets;
         std::vector<std::shared_ptr<Explosion>> explosions;
         float speed = 100.0f;
         float respawnCooldown = 3.0f;
@@ -110,39 +110,38 @@ int main(int argc, char** argv){
             lastFrameTime = currentFrameTime;
 		    glClear(GL_COLOR_BUFFER_BIT);
             enemySpawnCooldown -= deltaTime;
-            tank->updateCooldowns(deltaTime);
             if(enemySpawnCooldown <= 0.0f){
                auto enemyTank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 8), false, 1);
                enemyTanks.push_back(enemyTank);
                enemySpawnCooldown = 10.0f;
             }
-
-            InputData input = readInput(pWindow);
-            for(auto& enemyTank : enemyTanks){
-                enemyTank->updateCooldowns(deltaTime);
-                InputData enemyInput;
-                enemyTank->aiMove(enemyInput, gen, enemyBullets);
-                TankController::update(*enemyTank, blockingTiles, enemyInput, deltaTime, enemyBullets);
+            if(tank->isTankDestroyed()){
+                respawnCooldown-=deltaTime;
+                if(respawnCooldown <= 0){
+                    tank->respawn(worldPosition(5,2), 3);
+                    respawnCooldown = 5.0f;
+                }
             }
 
-            TankController::update(*tank, blockingTiles, input, deltaTime, bullets);
+            InputData input = readInput(pWindow);
+            tank->update(deltaTime, input, bullets);
+            for(auto& enemyTank : enemyTanks){
+                InputData enemyInput;
+                enemyTank->aiMove(enemyInput, gen);
+                enemyTank->update(deltaTime, enemyInput, bullets);
+                TankController::update(*enemyTank, blockingTiles, enemyInput, deltaTime);
+            }
+
+            TankController::update(*tank, blockingTiles, input, deltaTime);
             for(auto& bullet : bullets){
-                bullet->update(deltaTime, blockingTiles);
+                bullet->update(deltaTime);
+                CollisionSystem::handleBulletCollisions(tex, pShader, bullets, tank, enemyTanks, explosions, blockingTiles);
             }
             for(auto& explosion : explosions){
                 explosion->update(deltaTime);
             }
-            for(auto& bullet : enemyBullets){
-                bullet->update(deltaTime, blockingTiles);
-            }
 
             for(auto& bullet : bullets){
-                if(bullet->isDestroyed()){
-                    auto explosion = std::make_shared<Explosion>(tex, pShader, bullet->getPosition());
-                    explosions.push_back(explosion);
-                }
-            }
-            for(auto& bullet : enemyBullets){
                 if(bullet->isDestroyed()){
                     auto explosion = std::make_shared<Explosion>(tex, pShader, bullet->getPosition());
                     explosions.push_back(explosion);
@@ -159,13 +158,15 @@ int main(int argc, char** argv){
                         [](const auto& b){return b->isFinished();}), explosions.end());
             bullets.erase(std::remove_if(bullets.begin(), bullets.end(),
                         [](const auto& b){return b->isDestroyed();}), bullets.end());
-            enemyBullets.erase(std::remove_if(enemyBullets.begin(), enemyBullets.end(),
-                        [](const auto& b){return b->isDestroyed();}), enemyBullets.end());
+            enemyTanks.erase(std::remove_if(enemyTanks.begin(), enemyTanks.end(),
+                        [](const auto& b){return b->isTankDestroyed();}), enemyTanks.end());
 
             for(auto& explosion : explosions){
                 explosion->draw(projectionMatrix);
             }
-            tank->draw(projectionMatrix);
+            if(!tank->isTankDestroyed()){
+                tank->draw(projectionMatrix);
+            }
             for(auto& enemyTank : enemyTanks){
                 enemyTank->draw(projectionMatrix);
             }
@@ -174,9 +175,6 @@ int main(int argc, char** argv){
             }
 
             for(auto& bullet : bullets){
-                bullet->draw(projectionMatrix);
-            }
-            for(auto& bullet : enemyBullets){
                 bullet->draw(projectionMatrix);
             }
 

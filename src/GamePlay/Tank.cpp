@@ -17,16 +17,27 @@ Tank::Tank(const std::shared_ptr<Renderer::Texture2D>& pTexture,
            m_isPlayer(isPlayer),
            m_shootCooldown(0.5f),
            m_aiCooldown(0.3f),
-           m_aiDirection(0)
+           m_aiDirection(0),
+           m_isDestroyed(false)
 {
     glm::vec2 offset, scale;
-    getTileUV(0, offset, scale);
+    if(isTankPlayer()){
+        getTileUV(0, offset, scale);
+    }
+    else{
+        getTileUV(200, offset, scale);
+    }
     setUVRegion(offset, scale);   
 }
 Tank::~Tank(){
 
 }
 
+void Tank::respawn(const glm::vec2& pos, const int health){
+    m_isDestroyed = false;
+    setPosition(pos);
+    setTankHealth(health);
+}
 int Tank::getTankDamage() const {
     return m_tankDamage;
 }
@@ -66,8 +77,11 @@ int Tank::getAiDirection() const{
 void Tank::setAiDirection(const int newDirection){
     m_aiDirection = newDirection;
 }
+bool Tank::isTankDestroyed() const{
+    return m_isDestroyed;
+}
 
-void Tank::aiMove(InputData& input, std::mt19937& gen, std::vector<std::shared_ptr<Bullet>>& enemyBullets){
+void Tank::aiMove(InputData& input, std::mt19937& gen){
     if(getAiCooldown() <= 0.0f){
         std::uniform_int_distribution<> distr(0, 4);
         setAiDirection(distr(gen));
@@ -93,9 +107,18 @@ void Tank::aiMove(InputData& input, std::mt19937& gen, std::vector<std::shared_p
             break;
     }
 }
-void Tank::updateCooldowns(const float deltaTime){
+void Tank::update(const float deltaTime, const InputData& input, std::vector<std::shared_ptr<Bullet>>& bullets){
+    if(isTankDestroyed()) { return; }
     if(getShootCooldown() > 0) setShootCooldown(getShootCooldown() - deltaTime);
     if(getAiCooldown() > 0) setAiCooldown(getAiCooldown() - deltaTime);
+
+    if(input.fire && getShootCooldown() <= 0){
+        auto bullet = shoot();
+        bullets.push_back(bullet);
+        setShootCooldown(0.5f);
+    }
+
+    if(getTankHealth() <= 0) { m_isDestroyed = true; }
 }
 std::shared_ptr<Bullet> Tank::shoot(){
     glm::vec2 dir;
@@ -105,6 +128,6 @@ std::shared_ptr<Bullet> Tank::shoot(){
     else if(rot == 180.0f){ dir = {0.0f, -1.0f}; }
     else if(rot == 270.0f){ dir = {1.0f, 0.0f}; }
     else { dir = {0.0f, 1.0f}; }
-    std::shared_ptr<Bullet> bullet = std::make_shared<Bullet>(getTexture(), getShader(), getPosition(), dir, getTankDamage(), getRotation());
+    std::shared_ptr<Bullet> bullet = std::make_shared<Bullet>(getTexture(), getShader(), getPosition(), dir, isTankPlayer(), getTankDamage(), getRotation());
     return bullet;
 }

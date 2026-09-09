@@ -7,6 +7,7 @@ Bullet::Bullet(const std::shared_ptr<Renderer::Texture2D>& pTexture,
                const std::shared_ptr<Renderer::ShaderProgram>& pShader,
                const glm::vec2& position,
                const glm::vec2& direction,
+               const bool isBulletPlayer,
                const int damage,
                const float rotation,
                const float speed,
@@ -16,7 +17,8 @@ Bullet::Bullet(const std::shared_ptr<Renderer::Texture2D>& pTexture,
                ,m_speed(speed)
                ,m_damage(damage)
                ,m_lifetime(3.0f)
-               ,m_destroyed(false) 
+               ,m_destroyed(false)
+               ,m_isBulletPlayer(isBulletPlayer)
 {
     glm::vec2 offset, scale;
     getTileUV(164, offset, scale);
@@ -35,24 +37,13 @@ Bullet::Bullet(const std::shared_ptr<Renderer::Texture2D>& pTexture,
     setUVRegion(offset, scale);
 }
 
-void Bullet::update(const float deltaTime, const std::vector<std::shared_ptr<Tile>>& blockingTiles){
+void Bullet::update(const float deltaTime){
     if (m_destroyed) {return;}
 
     glm::vec2 newPosition = getPosition();
     newPosition.x += m_direction.x * deltaTime * m_speed;
     newPosition.y += m_direction.y * deltaTime * m_speed;
     setPosition(newPosition);
-
-    for(auto& tile : blockingTiles){
-        if(checkCollision(getRect(), tile->getRect())){
-            if(tile->getBulletBlock()){
-		std::cout << "BULLET DAMAGE VALUE IS: " << m_damage << std::endl;
-		tile->damage(m_damage);
-		m_destroyed = true;
-		break;
-	    }
-	}
-    }
 
     m_lifetime -= deltaTime;
     if(m_lifetime <= 0.0f){m_destroyed = true;}
