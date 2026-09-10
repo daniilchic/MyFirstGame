@@ -9,6 +9,6 @@
 class TankController {
     public:
         TankController() = delete;
-        static void update(Tank& tank, const std::vector<std::shared_ptr<Tile>>& blockingTiles, 
+        static void update(Tank& tank, const std::vector<std::shared_ptr<Tank>>& tanks, const std::vector<std::shared_ptr<Tile>>& blockingTiles, 
                            const InputData& input, const float deltaTime, const float speed = 100.0f);
 };

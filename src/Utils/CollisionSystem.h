@@ -16,9 +16,10 @@ class CollisionSystem{
                     const std::shared_ptr<Renderer::Texture2D>& pTexture,
                     const std::shared_ptr<Renderer::ShaderProgram>& pShader,
                     std::vector<std::shared_ptr<Bullet>>& bullets,
-                    std::shared_ptr<Tank>& playerTank,
+                    Tank& playerTank,
                     std::vector<std::shared_ptr<Tank>>& enemyTanks,
                     std::vector<std::shared_ptr<Explosion>>& explosions,
                     const std::vector<std::shared_ptr<Tile>>& blockingTiles
                 );
+        static bool handleTankCollisions(const Tank& tank, const std::vector<std::shared_ptr<Tank>>& tanks, const std::vector<std::shared_ptr<Tile>>& blockingTiles);
 };

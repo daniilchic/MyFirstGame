@@ -35,14 +35,14 @@ int main(int argc, char** argv){
     std::vector<std::vector<int>> mapData = //Game map, 0 - empty, 1 - wall, 2 - metal, 3 - bush, 4 - water 
     {
         {2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
-        {2, 0, 1, 0, 0, 0, 0, 1, 0, 2},
-        {2, 0, 0, 0, 0, 0, 0, 1, 0, 2},
-        {2, 4, 1, 4, 3, 4, 1, 1, 1, 2},
-        {2, 0, 1, 0, 3, 3, 1, 1, 0, 2},
-        {2, 0, 0, 1, 3, 3, 0, 0, 0, 2},
-        {2, 0, 1, 1, 1, 1, 1, 4, 4, 2},
-        {2, 0, 1, 0, 0, 0, 1, 0, 0, 2},
-        {2, 0, 0, 0, 0, 0, 1, 0, 0, 2}, // player is on 5 col
+        {2, 0, 0, 1, 0, 0, 1, 0, 0, 2},
+        {2, 0, 0, 1, 2, 2, 1, 0, 0, 2},
+        {2, 0, 0, 0, 3, 3, 0, 0, 0, 2},
+        {2, 1, 1, 1, 1, 1, 3, 4, 3, 2},
+        {2, 3, 4, 3, 1, 1, 1, 1, 1, 2},
+        {2, 0, 0, 0, 3, 3, 0, 0, 0, 2},
+        {2, 0, 0, 1, 2, 2, 1, 0, 0, 2},
+        {2, 0, 0, 1, 0, 0, 1, 0, 0, 2}, // player is on 5 col
         {2, 2, 2, 2, 2, 2, 2, 2, 2, 2}
     };
     if(!glfwInit()){
@@ -111,7 +111,7 @@ int main(int argc, char** argv){
 		    glClear(GL_COLOR_BUFFER_BIT);
             enemySpawnCooldown -= deltaTime;
             if(enemySpawnCooldown <= 0.0f){
-               auto enemyTank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 8), false, 1);
+               auto enemyTank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 9), false, 1);
                enemyTanks.push_back(enemyTank);
                enemySpawnCooldown = 10.0f;
             }
@@ -129,14 +129,14 @@ int main(int argc, char** argv){
                 InputData enemyInput;
                 enemyTank->aiMove(enemyInput, gen);
                 enemyTank->update(deltaTime, enemyInput, bullets);
-                TankController::update(*enemyTank, blockingTiles, enemyInput, deltaTime);
+                TankController::update(*enemyTank, {tank}, blockingTiles, enemyInput, deltaTime);
             }
 
-            TankController::update(*tank, blockingTiles, input, deltaTime);
+            TankController::update(*tank, enemyTanks, blockingTiles, input, deltaTime);
             for(auto& bullet : bullets){
                 bullet->update(deltaTime);
-                CollisionSystem::handleBulletCollisions(tex, pShader, bullets, tank, enemyTanks, explosions, blockingTiles);
             }
+            CollisionSystem::handleBulletCollisions(tex, pShader, bullets, *tank, enemyTanks, explosions, blockingTiles);
             for(auto& explosion : explosions){
                 explosion->update(deltaTime);
             }

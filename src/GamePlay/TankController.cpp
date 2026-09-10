@@ -1,8 +1,9 @@
 #include "TankController.h"
 #include "Utils/Collision.h"
 #include "Bullet.h"
+#include "Utils/CollisionSystem.h"
 
-void TankController::update(Tank& tank, const std::vector<std::shared_ptr<Tile>>& blockingTiles, 
+void TankController::update(Tank& tank, const std::vector<std::shared_ptr<Tank>>& tanks ,const std::vector<std::shared_ptr<Tile>>& blockingTiles, 
                             const InputData& input, const float deltaTime, const float speed)
 {
     float moveSpeed = deltaTime * speed;
@@ -17,18 +18,13 @@ void TankController::update(Tank& tank, const std::vector<std::shared_ptr<Tile>>
     glm::vec2 pos = oldPos;
 
     pos.x += moveX * moveSpeed;
+    pos.y += moveY * moveSpeed;
     tank.setPosition(pos);
-    if(checkAllCollisions(tank, blockingTiles)){
-        pos.x = oldPos.x;
+    if(CollisionSystem::handleTankCollisions(tank, tanks, blockingTiles)){
+        pos = oldPos;
         tank.setPosition(pos);
     }
 
-    pos.y += moveY * moveSpeed;
-    tank.setPosition(pos);
-    if(checkAllCollisions(tank, blockingTiles)){
-        pos.y = oldPos.y;
-        tank.setPosition(pos);
-    }
 
     if(moveY > 0){
         tank.setRotation(0.0f);
