@@ -41,8 +41,8 @@ int main(int argc, char** argv){
         {2, 0, 0, 0, 3, 3, 0, 0, 0, 2},
         {2, 1, 1, 1, 1, 1, 3, 4, 3, 2},
         {2, 3, 4, 3, 1, 1, 1, 1, 1, 2},
-        {2, 0, 0, 0, 3, 3, 0, 0, 0, 2},
-        {2, 0, 0, 1, 2, 2, 1, 0, 0, 2},
+        {2, 1, 0, 0, 3, 3, 0, 0, 0, 2},
+        {2, 1, 2, 2, 2, 2, 1, 0, 0, 2},
         {2, 0, 0, 1, 0, 0, 1, 0, 0, 2}, // player is on 5 col
         {2, 2, 2, 2, 2, 2, 2, 2, 2, 2}
     };
@@ -132,12 +132,11 @@ int main(int argc, char** argv){
                 if(spawned) { waves++; }
             }
             if(tank->isTankDestroyed()){
-                kills = kills/2;
-                savedKills = savedKills/2;
                 respawnCooldown-=deltaTime;
                 if(respawnCooldown <= 0){
-
-                    tank->respawn(worldPosition(5,2), 3+kills*(1 + waves/20), 1+kills/3*(1 + waves/30));
+                    kills = kills/2;
+                    savedKills = kills;
+                    tank->respawn(worldPosition(5,2), 3+kills*(1 + waves/20), 1+kills/3*(1 + waves/40));
                     respawnCooldown = 5.0f;
                 }
             }
