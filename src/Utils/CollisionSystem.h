@@ -19,7 +19,8 @@ class CollisionSystem{
                     Tank& playerTank,
                     std::vector<std::shared_ptr<Tank>>& enemyTanks,
                     std::vector<std::shared_ptr<Explosion>>& explosions,
-                    const std::vector<std::shared_ptr<Tile>>& blockingTiles
+                    const std::vector<std::shared_ptr<Tile>>& blockingTiles,
+                    int& kills
                 );
         static bool handleTankCollisions(const Tank& tank, const std::vector<std::shared_ptr<Tank>>& tanks, const std::vector<std::shared_ptr<Tile>>& blockingTiles);
 };

@@ -12,7 +12,8 @@ void CollisionSystem::handleBulletCollisions(
         Tank& playerTank,
         std::vector<std::shared_ptr<Tank>>& enemyTanks,
         std::vector<std::shared_ptr<Explosion>>& explosions,
-        const std::vector<std::shared_ptr<Tile>>& blockingTiles)
+        const std::vector<std::shared_ptr<Tile>>& blockingTiles,
+        int& kills)
 {
     for(auto& bullet : bullets){
         if(bullet->isDestroyed()) { continue; }
@@ -42,7 +43,9 @@ void CollisionSystem::handleBulletCollisions(
         else{
             for(auto& enemy : enemyTanks){
                 if(!enemy->isTankDestroyed() && checkCollision(enemy->getRect(), bullet->getRect())){
-                    enemy->damage(bullet->getDamage());
+                    if(enemy->damage(bullet->getDamage())){
+                        ++kills;
+                    }
                     bullet->destroy();
                     explosions.push_back(std::make_shared<Explosion>(pTexture, pShader, bullet->getPosition()));
                     break;

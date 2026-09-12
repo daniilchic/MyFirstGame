@@ -17,12 +17,12 @@ class Tank : public Renderer::Sprite {
              const float rotation = 0.f);
         ~Tank();
 
-        void respawn(const glm::vec2& pos, const int health);
+        void respawn(const glm::vec2& pos, const int health, const int damage);
         int getTankDamage() const;
         void setTankDamage(const int newDamage);
         int getTankHealth() const;
         void setTankHealth(const int newHealth);
-        void damage(const int dmg);
+        bool damage(const int dmg);
         bool isTankPlayer() const;
         float getShootCooldown() const;
         void setShootCooldown(const float newCooldown);

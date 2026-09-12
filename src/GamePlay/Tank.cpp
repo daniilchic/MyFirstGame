@@ -33,16 +33,17 @@ Tank::~Tank(){
 
 }
 
-void Tank::respawn(const glm::vec2& pos, const int health){
+void Tank::respawn(const glm::vec2& pos, const int health, const int damage){
     m_isDestroyed = false;
     setPosition(pos);
     setTankHealth(health);
+    setTankDamage(damage);
 }
 int Tank::getTankDamage() const {
     return m_tankDamage;
 }
 void Tank::setTankDamage(const int newDamage){
-    if(newDamage > 0 && newDamage < 1000000){
+    if(newDamage > 0){
         m_tankDamage = newDamage;
     }
 }
@@ -53,8 +54,12 @@ int Tank::getTankHealth() const{
 void Tank::setTankHealth(const int newHealth){
     m_tankHealth = newHealth;
 }
-void Tank::damage(const int dmg){
+bool Tank::damage(const int dmg){
     setTankHealth(getTankHealth() - dmg);
+    if(getTankHealth() <= 0){
+        m_isDestroyed = true;
+    }
+    return m_isDestroyed;
 }
 bool Tank::isTankPlayer() const{
     return m_isPlayer;

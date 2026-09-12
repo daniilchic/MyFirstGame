@@ -23,6 +23,7 @@
 #include "GamePlay/InputData.h" // my files
 #include "Utils/InputManager.h"
 #include "Utils/CollisionSystem.h"
+#include "GamePlay/findRandomFreeCell.h"
 
 void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height);
 void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mode);
@@ -92,7 +93,10 @@ int main(int argc, char** argv){
         auto tex = resourceManager.loadTexture("DefaultTexture", "res/textures/map_16x16.png");
         auto pShader = resourceManager.getShaderProgram("DefaultShader");
         GameMap gameMap(mapData, tex, pShader);
-        auto tank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 2), true); //player tank
+        auto tank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 2), true, 1, 3); //player tank
+        int kills = 0;
+        int savedKills = 0;
+        int waves = 1;
         std::vector<std::shared_ptr<Tank>> enemyTanks;
         auto& blockingTiles = gameMap.getBlockingTiles();
         auto& backgroundTiles = gameMap.getBackgroundTiles();
@@ -111,14 +115,29 @@ int main(int argc, char** argv){
 		    glClear(GL_COLOR_BUFFER_BIT);
             enemySpawnCooldown -= deltaTime;
             if(enemySpawnCooldown <= 0.0f){
-               auto enemyTank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 9), false, 1);
-               enemyTanks.push_back(enemyTank);
-               enemySpawnCooldown = 10.0f;
+                bool spawned = false;
+                for(int i = 0; i < waves/10 + 1; i++){
+                    glm::ivec2 freeCell = findRandomFreeCell(blockingTiles, tank, gen);
+                    if(freeCell.x > 0 && freeCell.y > 0){
+                        spawned = true;
+                        auto enemyTank = std::make_shared<Tank>(tex, pShader, worldPosition(freeCell.x, freeCell.y), false, 1 + waves * (1 + waves/40) / 6, 3 + waves * (1 + waves/20) / 2);
+                        enemyTanks.push_back(enemyTank);
+                        std::cout << "Enemy tank was spawned, wave - " << waves << std::endl;
+                        enemySpawnCooldown = 5.0f;
+                    }
+                    else{
+                        enemySpawnCooldown = 0.5f;
+                    }
+                }
+                if(spawned) { waves++; }
             }
             if(tank->isTankDestroyed()){
+                kills = kills/2;
+                savedKills = savedKills/2;
                 respawnCooldown-=deltaTime;
                 if(respawnCooldown <= 0){
-                    tank->respawn(worldPosition(5,2), 3);
+
+                    tank->respawn(worldPosition(5,2), 3+kills*(1 + waves/20), 1+kills/3*(1 + waves/30));
                     respawnCooldown = 5.0f;
                 }
             }
@@ -136,7 +155,13 @@ int main(int argc, char** argv){
             for(auto& bullet : bullets){
                 bullet->update(deltaTime);
             }
-            CollisionSystem::handleBulletCollisions(tex, pShader, bullets, *tank, enemyTanks, explosions, blockingTiles);
+            CollisionSystem::handleBulletCollisions(tex, pShader, bullets, *tank, enemyTanks, explosions, blockingTiles, kills);
+            if(!tank->isTankDestroyed() && kills > savedKills){
+                int killDif = kills - savedKills;
+                tank->setTankHealth(tank->getTankHealth() + killDif * (1 + waves / 20));
+                tank->setTankDamage(1 + (kills / 3)*(1 + waves / 40));
+                savedKills = kills;
+            }
             for(auto& explosion : explosions){
                 explosion->update(deltaTime);
             }
@@ -181,6 +206,10 @@ int main(int argc, char** argv){
             for(auto& foregroundTile : foregroundTiles){
                 foregroundTile->draw(projectionMatrix);
             }
+
+            std::cout << "kills - " << kills << std::endl;
+            std::cout << "HP - " << tank->getTankHealth() << std::endl;
+            std::cout << "damage - " << tank->getTankDamage() << std::endl;
 		    glfwSwapBuffers(pWindow);
 
 		    glfwPollEvents();
