@@ -28,6 +28,7 @@
 void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height);
 void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mode);
 glm::ivec2 g_windowSize(640, 640);
+bool g_restartRequested = false;
 
 int main(int argc, char** argv){
     const int mapCols = 10;
@@ -94,6 +95,8 @@ int main(int argc, char** argv){
         auto pShader = resourceManager.getShaderProgram("DefaultShader");
         GameMap gameMap(mapData, tex, pShader);
         auto tank = std::make_shared<Tank>(tex, pShader, worldPosition(5, 2), true, 1, 3); //player tank
+                                                                                        
+
         int kills = 0;
         int savedKills = 0;
         int waves = 1;
@@ -111,6 +114,23 @@ int main(int argc, char** argv){
             glm::mat4 projectionMatrix = glm::ortho(0.f, static_cast<float>(g_windowSize.x), 0.f, static_cast<float>(g_windowSize.y), -100.f, 100.f); //initialization projection matrix
             float currentFrameTime = (float)glfwGetTime();
             float deltaTime = currentFrameTime - lastFrameTime;
+
+            if(g_restartRequested){
+                g_restartRequested = false;
+                kills = 0;
+                savedKills = 0;
+                waves = 1;
+                enemySpawnCooldown = 0.0f;
+                respawnCooldown = 3.0f;
+
+                enemyTanks.clear();
+                bullets.clear();
+                explosions.clear();
+
+                tank->respawn(worldPosition(5,2), 3, 1);
+                gameMap.reset();
+            }
+
             lastFrameTime = currentFrameTime;
 		    glClear(GL_COLOR_BUFFER_BIT);
             enemySpawnCooldown -= deltaTime;
@@ -231,5 +251,8 @@ void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int
    	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
        	glfwSetWindowShouldClose(pWindow, GL_TRUE);
    	}
+    if(key == GLFW_KEY_R && action == GLFW_PRESS){
+        g_restartRequested = true;
+    }
 }
 
