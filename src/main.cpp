@@ -72,6 +72,9 @@ int main(int argc, char** argv){
         std::cout << "Can't load Glad" << std::endl;
     	return -1;
     }
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     Renderer::Sprite::initRenderData(); // initialization of Sprites Size, color, texture
 
